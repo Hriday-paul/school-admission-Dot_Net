@@ -1,6 +1,32 @@
 @schoolAdmission_HostAddress = http://localhost:5133
+@classId = 00000000-0000-0000-0000-000000000000
 
-GET {{schoolAdmission_HostAddress}}/weatherforecast/
+### Create a Class
+POST {{schoolAdmission_HostAddress}}/api/classes
+Content-Type: application/json
+
+{
+  "name": "Class 10",
+  "totalSeats": 60
+}
+
+### Get All Classes
+GET {{schoolAdmission_HostAddress}}/api/classes
 Accept: application/json
 
-###
+### Get Class by ID
+GET {{schoolAdmission_HostAddress}}/api/classes/{{classId}}
+Accept: application/json
+
+### Update a Class
+PUT {{schoolAdmission_HostAddress}}/api/classes/{{classId}}
+Content-Type: application/json
+
+{
+  "name": "Class 10 - Section A",
+  "totalSeats": 65
+}
+
+### Delete a Class
+DELETE {{schoolAdmission_HostAddress}}/api/classes/{{classId}}
+Accept: application/json
