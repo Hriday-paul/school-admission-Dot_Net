@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using schoolAdmission.src.Infrastructure.BackgroundJobs;
 using schoolAdmission.src.Infrastructure.Data;
 using schoolAdmission.src.Infrastructure.Repositories;
 using schoolAdmission.src.Modules.Classes;
 using schoolAdmission.src.Modules.Holds;
+using schoolAdmission.src.Shared.Services;
 using schoolAdmission.src.utils;
 
 // Load .env file if present
@@ -41,6 +43,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddScoped<IClassRepository, ClassesService>();
 builder.Services.AddScoped<IHoldRepository, HoldsService>();
+builder.Services.AddSingleton<IClassSeatsNotifier, ClassSeatsNotifier>();
+builder.Services.AddSignalR();
+builder.Services.AddHostedService<ExpiredHoldsCleanupWorker>();
 
 builder.Services.AddControllers()
     .ConfigureApiBehaviorOptions(options =>
@@ -74,5 +79,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.MapControllers();
+app.MapHub<ClassHub>("/classes");
 
 app.Run();

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using schoolAdmission.src.Infrastructure.Repositories;
+using schoolAdmission.src.Shared.Filters;
 using schoolAdmission.src.utils;
 
 namespace schoolAdmission.src.Modules.Holds
@@ -13,6 +14,18 @@ namespace schoolAdmission.src.Modules.Holds
         public HoldController(IHoldRepository holdRepository)
         {
             _holdRepository = holdRepository;
+        }
+
+        [HttpGet("/me")]
+        [ValidateStudentIdHeader]
+        public async Task<IActionResult> GetMyHolds()
+        {
+            var studentId = HttpContext.Items[ValidateStudentIdHeaderAttribute.HttpContextItemKey]?.ToString()
+                ?? HttpContext.Request.Headers[ValidateStudentIdHeaderAttribute.HeaderName].ToString();
+
+            var holds = await _holdRepository.GetHoldsByStudentIdAsync(studentId);
+            
+            return Ok(SendResponse<List<HoldModel>>.Success("Student holds retrieved successfully", holds));
         }
 
         [HttpGet("{holdId:guid}")]

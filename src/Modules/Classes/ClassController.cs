@@ -9,7 +9,6 @@ namespace schoolAdmission.src.Modules.Classes
 {
     [ApiController]
     [Route("api/classes")]
-    [Route("classes")]
     public class ClassController : ControllerBase
     {
         private readonly IClassRepository _classRepository;

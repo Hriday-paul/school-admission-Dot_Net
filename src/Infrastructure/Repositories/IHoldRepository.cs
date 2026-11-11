@@ -6,6 +6,7 @@ namespace schoolAdmission.src.Infrastructure.Repositories
     {
         Task<HoldModel> CreateHoldAsync(Guid classId, string studentId);
         Task<HoldModel?> GetHoldByIdAsync(Guid holdId);
+        Task<List<HoldModel>> GetHoldsByStudentIdAsync(string studentId);
         Task<HoldModel?> ConfirmHoldAsync(Guid holdId);
         Task<bool> DeleteHoldAsync(Guid holdId);
     }

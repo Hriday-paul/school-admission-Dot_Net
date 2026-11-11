@@ -1,18 +1,30 @@
 using Microsoft.EntityFrameworkCore;
 using schoolAdmission.src.Infrastructure.Data;
 using schoolAdmission.src.Infrastructure.Repositories;
+using schoolAdmission.src.Shared.Services;
 
 namespace schoolAdmission.src.Modules.Holds
 {
     public class HoldsService : IHoldRepository
     {
         private readonly ApplicationDbContext _context;
-        // Default hold duration, e.g., 10 minutes
-        private static readonly TimeSpan DefaultHoldDuration = TimeSpan.FromMinutes(10);
+        private readonly IClassSeatsNotifier _notifier;
 
-        public HoldsService(ApplicationDbContext context)
+        public HoldsService(ApplicationDbContext context, IClassSeatsNotifier notifier)
         {
             _context = context;
+            _notifier = notifier;
+        }
+
+        private TimeSpan GetHoldDuration()
+        {
+            var envValue = Environment.GetEnvironmentVariable("HOLD_DURATION_SECONDS");
+            if (!string.IsNullOrWhiteSpace(envValue) && int.TryParse(envValue.Trim(), out var seconds) && seconds > 0)
+            {
+                return TimeSpan.FromSeconds(seconds);
+            }
+
+            return TimeSpan.FromSeconds(600);
         }
 
         public async Task<HoldModel> CreateHoldAsync(Guid classId, string studentId)
@@ -53,19 +65,23 @@ namespace schoolAdmission.src.Modules.Holds
                 throw new InvalidOperationException("Student already has an active hold for this class.");
             }
 
+            var holdDuration = GetHoldDuration();
+
             var hold = new HoldModel
             {
                 Id = Guid.NewGuid(),
                 ClassId = classId,
                 StudentId = studentId,
                 Status = HoldStatus.HELD,
-                ExpiresAt = now.Add(DefaultHoldDuration),
+                ExpiresAt = now.Add(holdDuration),
                 CreatedAt = now,
                 UpdatedAt = now
             };
 
             _context.Holds.Add(hold);
             await _context.SaveChangesAsync();
+
+            await _notifier.NotifyClassSeatsChangedAsync(classId);
 
             return hold;
         }
@@ -87,6 +103,17 @@ namespace schoolAdmission.src.Modules.Holds
             }
 
             return hold;
+        }
+
+        public async Task<List<HoldModel>> GetHoldsByStudentIdAsync(string studentId)
+        {
+            var holds = await _context.Holds
+                .Include(h => h.Class)
+                .Where(h => h.StudentId == studentId)
+                .OrderByDescending(h => h.CreatedAt)
+                .ToListAsync();
+
+            return holds;
         }
 
         public async Task<HoldModel?> ConfirmHoldAsync(Guid holdId)
@@ -123,6 +150,9 @@ namespace schoolAdmission.src.Modules.Holds
             hold.UpdatedAt = now;
 
             await _context.SaveChangesAsync();
+
+            await _notifier.NotifyClassSeatsChangedAsync(hold.ClassId);
+
             return hold;
         }
 
@@ -134,10 +164,14 @@ namespace schoolAdmission.src.Modules.Holds
                 return false;
             }
 
+            var classId = hold.ClassId;
             hold.Status = HoldStatus.CANCELLED;
             hold.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
+
+            await _notifier.NotifyClassSeatsChangedAsync(classId);
+
             return true;
         }
     }

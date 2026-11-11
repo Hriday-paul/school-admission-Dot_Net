@@ -47,3 +47,9 @@ Accept: application/json
 
 ### Delete (Cancel) Hold (Returns 204 No Content)
 DELETE {{schoolAdmission_HostAddress}}/holds/{{holdId}}
+
+
+### Get My Holds
+GET {{schoolAdmission_HostAddress}}/me/holds
+X-Student-Id: student-12345
+Accept: application/json
