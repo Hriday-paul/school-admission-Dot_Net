@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using schoolAdmission.src.Infrastructure.Data;
 using schoolAdmission.src.Infrastructure.Repositories;
 using schoolAdmission.src.Modules.Classes;
+using schoolAdmission.src.Modules.Holds;
 using schoolAdmission.src.utils;
 
 // Load .env file if present
@@ -39,6 +40,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 builder.Services.AddScoped<IClassRepository, ClassesService>();
+builder.Services.AddScoped<IHoldRepository, HoldsService>();
 
 builder.Services.AddControllers()
     .ConfigureApiBehaviorOptions(options =>

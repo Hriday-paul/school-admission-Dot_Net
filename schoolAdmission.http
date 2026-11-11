@@ -30,3 +30,20 @@ Content-Type: application/json
 ### Delete a Class
 DELETE {{schoolAdmission_HostAddress}}/api/classes/{{classId}}
 Accept: application/json
+
+
+### Create a Hold on a Class
+POST {{schoolAdmission_HostAddress}}/classes/{{classId}}/holds
+X-Student-Id: student-12345
+
+### Get Hold by ID
+@holdId = 00000000-0000-0000-0000-000000000000
+GET {{schoolAdmission_HostAddress}}/holds/{{holdId}}
+Accept: application/json
+
+### Confirm Hold
+POST {{schoolAdmission_HostAddress}}/holds/{{holdId}}/confirm
+Accept: application/json
+
+### Delete (Cancel) Hold (Returns 204 No Content)
+DELETE {{schoolAdmission_HostAddress}}/holds/{{holdId}}

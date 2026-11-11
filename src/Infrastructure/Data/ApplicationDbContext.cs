@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using schoolAdmission.src.Modules.Classes;
+using schoolAdmission.src.Modules.Holds;
 
 namespace schoolAdmission.src.Infrastructure.Data
 {
@@ -11,6 +12,7 @@ namespace schoolAdmission.src.Infrastructure.Data
         }
 
         public DbSet<ClassModel> Classes { get; set; }
+        public DbSet<HoldModel> Holds { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -20,9 +22,22 @@ namespace schoolAdmission.src.Infrastructure.Data
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            var entries = ChangeTracker.Entries<ClassModel>();
+            var classEntries = ChangeTracker.Entries<ClassModel>();
+            foreach (var entry in classEntries)
+            {
+                if (entry.State == EntityState.Added)
+                {
+                    entry.Entity.CreatedAt = DateTime.UtcNow;
+                    entry.Entity.UpdatedAt = DateTime.UtcNow;
+                }
+                else if (entry.State == EntityState.Modified)
+                {
+                    entry.Entity.UpdatedAt = DateTime.UtcNow;
+                }
+            }
 
-            foreach (var entry in entries)
+            var holdEntries = ChangeTracker.Entries<HoldModel>();
+            foreach (var entry in holdEntries)
             {
                 if (entry.State == EntityState.Added)
                 {

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using schoolAdmission.src.Infrastructure.Data;
 using schoolAdmission.src.Infrastructure.Repositories;
 using schoolAdmission.src.Modules.Classes.Dtos;
+using schoolAdmission.src.Modules.Holds;
 
 namespace schoolAdmission.src.Modules.Classes
 {
@@ -41,19 +42,85 @@ namespace schoolAdmission.src.Modules.Classes
             return newClass;
         }
 
-        public async Task<List<ClassModel>> GetClassesAsync()
+        public async Task<List<ClassResponseDto>> GetClassesAsync()
         {
-            return await _context.Classes
+            var now = DateTime.UtcNow;
+
+            var classes = await _context.Classes
                 .AsNoTracking()
                 .OrderBy(c => c.CreatedAt)
                 .ToListAsync();
+
+            var classIds = classes.Select(c => c.Id).ToList();
+
+            var holdStats = await _context.Holds
+                .AsNoTracking()
+                .Where(h => classIds.Contains(h.ClassId))
+                .GroupBy(h => h.ClassId)
+                .Select(g => new
+                {
+                    ClassId = g.Key,
+                    HeldSeats = g.Count(h => h.Status == HoldStatus.HELD && h.ExpiresAt > now),
+                    ConfirmedSeats = g.Count(h => h.Status == HoldStatus.CONFIRMED)
+                })
+                .ToDictionaryAsync(x => x.ClassId, x => (x.HeldSeats, x.ConfirmedSeats));
+
+            return classes.Select(c =>
+            {
+                var heldSeats = 0;
+                var confirmedSeats = 0;
+                if (holdStats.TryGetValue(c.Id, out var stats))
+                {
+                    heldSeats = stats.HeldSeats;
+                    confirmedSeats = stats.ConfirmedSeats;
+                }
+
+                var availableSeats = Math.Max(0, c.TotalSeats - heldSeats - confirmedSeats);
+
+                return new ClassResponseDto
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    TotalSeats = c.TotalSeats,
+                    HeldSeats = heldSeats,
+                    ConfirmedSeats = confirmedSeats,
+                    AvailableSeats = availableSeats
+                };
+            }).ToList();
         }
 
-        public async Task<ClassModel?> GetClassByIdAsync(Guid id)
+        public async Task<ClassResponseDto?> GetClassByIdAsync(Guid id)
         {
-            return await _context.Classes
+            var c = await _context.Classes
                 .AsNoTracking()
-                .FirstOrDefaultAsync(c => c.Id == id);
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (c == null)
+            {
+                return null;
+            }
+
+            var now = DateTime.UtcNow;
+
+            var heldSeats = await _context.Holds
+                .AsNoTracking()
+                .CountAsync(h => h.ClassId == id && h.Status == HoldStatus.HELD && h.ExpiresAt > now);
+
+            var confirmedSeats = await _context.Holds
+                .AsNoTracking()
+                .CountAsync(h => h.ClassId == id && h.Status == HoldStatus.CONFIRMED);
+
+            var availableSeats = Math.Max(0, c.TotalSeats - heldSeats - confirmedSeats);
+
+            return new ClassResponseDto
+            {
+                Id = c.Id,
+                Name = c.Name,
+                TotalSeats = c.TotalSeats,
+                HeldSeats = heldSeats,
+                ConfirmedSeats = confirmedSeats,
+                AvailableSeats = availableSeats
+            };
         }
 
         public async Task<ClassModel?> UpdateClassAsync(Guid id, UpdateClassDto dto)
