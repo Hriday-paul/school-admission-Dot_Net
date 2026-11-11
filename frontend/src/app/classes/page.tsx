@@ -1,4 +1,3 @@
-import StudentNavbar from "@/components/shared/StudentNavbar";
 import {
   Sparkles,
 } from "lucide-react";
@@ -10,7 +9,6 @@ export default function StudentClassesPage() {
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] flex flex-col">
-      <StudentNavbar />
 
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -28,7 +26,7 @@ export default function StudentClassesPage() {
               Explore Available Classes
             </h1>
             <p className="text-sm text-gray-500 mt-1 max-w-2xl">
-              Browse classes and check live seat counts. Apply to hold a seat for 10 minutes while you confirm your admission.
+              Browse classes and check live seat counts. Apply to hold a seat temporarily while you confirm your admission.
             </p>
           </div>
 

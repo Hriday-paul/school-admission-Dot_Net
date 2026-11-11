@@ -6,6 +6,7 @@ import antTheme from "@/theme/antTheme";
 import { Toaster } from "sonner";
 import NextJsTopLoader from "@/components/shared/NextTopLoader";
 import ReduxProvider from "@/components/shared/ReduxProvider";
+import Navbar from "@/components/shared/Navbar";
 
 export const metadata: Metadata = {
   title: {
@@ -28,6 +29,7 @@ export default function RootLayout({
             <ConfigProvider theme={antTheme}>
               <Toaster position="top-center" richColors />
               <NextJsTopLoader />
+              <Navbar />
               {children}
             </ConfigProvider>
           </AntdRegistry>

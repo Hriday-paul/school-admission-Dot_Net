@@ -4,6 +4,7 @@ import { ClassItem } from '@/redux/types'
 import { Button, Progress, Tag } from 'antd';
 import { BookOpen, CheckCircle2, Clock } from 'lucide-react';
 import React from 'react'
+import Link from 'next/link';
 import { useSelector } from 'react-redux';
 import { toast } from 'sonner';
 
@@ -107,13 +108,14 @@ function Classcard({ item }: { item: ClassItem }) {
 
             {/* Actions */}
             <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
-                <Button
-                    size="large"
-                    // onClick={() => handleOpenDetails(item)}
-                    className="flex-1 rounded-xl font-bold text-xs sm:text-sm text-gray-700 hover:text-blue-600 hover:border-blue-400"
-                >
-                    View Details
-                </Button>
+                <Link href={`/classes/${item.id}`} className="flex-1">
+                    <Button
+                        size="large"
+                        className="w-full rounded-xl font-bold text-xs sm:text-sm text-gray-700 hover:text-blue-600 hover:border-blue-400"
+                    >
+                        View Details
+                    </Button>
+                </Link>
 
                 {birthCertificateId && <Button
                     type="primary"

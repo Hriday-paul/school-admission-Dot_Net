@@ -6,7 +6,12 @@ export const navLinks = [
   {
     key: "dashboard",
     icon: <RiDashboardHorizontalFill size={22} />,
-    label: <Link href="/dashboard">Classes & Overview</Link>,
+    label: <Link href="/dashboard">Dashboard Overview</Link>,
+  },
+  {
+    key: "admin-classes",
+    icon: <BookOpen size={22} />,
+    label: <Link href="/admin/classes">Manage Classes</Link>,
   },
   {
     key: "classes",

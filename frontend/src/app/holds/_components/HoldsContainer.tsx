@@ -5,10 +5,12 @@ import { RootState } from '@/redux/store';
 import { Button, Spin } from 'antd';
 import { AlertTriangle, ArrowRight, BookOpen, CheckCircle2, Clock, RefreshCw, Sparkles, XCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux';
 import ConfirmBtn from './ConfirmBtn';
 import DeletHoldBtn from './DeletHoldBtn';
+import CountdownTimer from '@/components/shared/CountdownTimer';
 
 // Helper to determine status type
 const getStatusInfo = (status: any, expiresAt: string) => {
@@ -185,9 +187,11 @@ function HoldsContainer() {
 
                                             <div className="flex items-center gap-4 text-xs text-gray-500 flex-wrap">
                                                 <span>
-                                                    Cert ID:{" "}
+                                                    Student:{" "}
                                                     <strong className="text-gray-700 font-mono">
-                                                        {hold.studentId}
+                                                        {hold.studentId
+                                                            ? `${hold.studentId.slice(0, 3)}••••${hold.studentId.slice(-3)}`
+                                                            : "Verified"}
                                                     </strong>
                                                 </span>
                                                 <span>&bull;</span>
@@ -214,21 +218,33 @@ function HoldsContainer() {
                                             <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
                                                 Hold Window Remaining
                                             </span>
-                                            <CountdownDisplay
+                                            <CountdownTimer
                                                 expiresAt={hold.expiresAt}
                                                 onExpire={() => refetch()}
+                                                variant="badge"
                                             />
                                         </div>
                                     )}
 
                                     {/* Right: Actions */}
                                     <div className="flex items-center gap-3 self-end lg:self-auto flex-wrap">
-                                        {isHoldActive ? (
-                                            <>
-                                                <DeletHoldBtn holdItem={hold} />
+                                        <Link href={`/holds/${hold.id}`}>
+                                            <Button
+                                                size="large"
+                                                className="rounded-xl font-bold text-xs sm:text-sm text-gray-700 hover:text-blue-600 hover:border-blue-400"
+                                            >
+                                                Details
+                                            </Button>
+                                        </Link>
 
-                                                <ConfirmBtn holdItem={hold} />
-                                            </>
+                                        {isHoldActive ? (
+                                            birthCertificateId ? (
+                                                <>
+                                                    <DeletHoldBtn holdItem={hold} />
+
+                                                    <ConfirmBtn holdItem={hold} />
+                                                </>
+                                            ) : null
                                         ) : statusInfo.isConfirmed ? (
                                             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-100 text-emerald-800 text-xs font-bold">
                                                 <CheckCircle2 size={16} className="text-emerald-600" />
@@ -255,57 +271,3 @@ function HoldsContainer() {
 }
 
 export default HoldsContainer;
-
-function CountdownDisplay({
-    expiresAt,
-    onExpire,
-}: {
-    expiresAt: string;
-    onExpire?: () => void;
-}) {
-    const [timeLeftMs, setTimeLeftMs] = useState<number>(() => {
-        return Math.max(0, new Date(expiresAt).getTime() - Date.now());
-    });
-
-    useEffect(() => {
-        const timer = setInterval(() => {
-            const remaining = new Date(expiresAt).getTime() - Date.now();
-            if (remaining <= 0) {
-                setTimeLeftMs(0);
-                clearInterval(timer);
-                onExpire?.();
-            } else {
-                setTimeLeftMs(remaining);
-            }
-        }, 1000);
-
-        return () => clearInterval(timer);
-    }, [expiresAt, onExpire]);
-
-    if (timeLeftMs <= 0) {
-        return (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-red-100 text-red-700 text-xs font-bold">
-                <XCircle size={14} /> Hold Expired
-            </span>
-        );
-    }
-
-    const totalSeconds = Math.floor(timeLeftMs / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    const isUrgent = totalSeconds < 120; // less than 2 minutes
-
-    return (
-        <div
-            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-mono font-bold transition-all ${isUrgent
-                ? "bg-red-50 border-red-200 text-red-600 animate-pulse"
-                : "bg-amber-50 border-amber-200 text-amber-700"
-                }`}
-        >
-            <Clock size={15} className={isUrgent ? "text-red-500" : "text-amber-500"} />
-            <span>
-                {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")} remaining
-            </span>
-        </div>
-    );
-}
