@@ -38,11 +38,11 @@ cd backend
 Create a file named `.env` in the backend root directory (next to `docker-compose.yml`) with the following content:
 
 ```dotenv
-DATABASE_URL="Host=localhost;Port=5432;Database=schoolAdmission;Username=postgres;Password=123456"
+DATABASE_URL="Host=postgres;Port=5432;Database=schoolAdmission;Username=postgres;Password=123456"
 HOLD_DURATION_SECONDS=60
-DB_NAME=
-DB_USER=
-DB_PASSWORD=
+DB_NAME=schoolAdmission
+DB_USER=postgres
+DB_PASSWORD=123456
 ```
 
 > **Note:** Fill in `DB_NAME`, `DB_USER` and `DB_PASSWORD` before running. Keep them consistent with the values used in `DATABASE_URL`.
