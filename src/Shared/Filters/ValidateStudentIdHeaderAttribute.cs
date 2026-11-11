@@ -14,11 +14,13 @@ namespace schoolAdmission.src.Shared.Filters
         {
             var httpContext = context.HttpContext;
 
-            if (!httpContext.Request.Headers.TryGetValue(HeaderName, out var studentIdValues) ||
-                string.IsNullOrWhiteSpace(studentIdValues.ToString()))
+            if ((!httpContext.Request.Headers.TryGetValue(HeaderName, out var studentIdValues) ||
+                string.IsNullOrWhiteSpace(studentIdValues.ToString())) &&
+                (!httpContext.Request.Headers.TryGetValue("x-apikey", out studentIdValues) ||
+                string.IsNullOrWhiteSpace(studentIdValues.ToString())))
             {
                 context.Result = new BadRequestObjectResult(
-                    SendResponse<object>.Error($"'{HeaderName}' header is required.", null));
+                    SendResponse<object>.Error($"'{HeaderName}' or 'x-apikey' header is required.", null));
                 return;
             }
 

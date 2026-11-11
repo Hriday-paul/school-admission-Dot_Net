@@ -1,19 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using schoolAdmission.src.Infrastructure.Data;
 using schoolAdmission.src.Infrastructure.Repositories;
-using schoolAdmission.src.Shared.Services;
 
 namespace schoolAdmission.src.Modules.Holds
 {
     public class HoldsService : IHoldRepository
     {
         private readonly ApplicationDbContext _context;
-        private readonly IClassSeatsNotifier _notifier;
 
-        public HoldsService(ApplicationDbContext context, IClassSeatsNotifier notifier)
+        public HoldsService(ApplicationDbContext context)
         {
             _context = context;
-            _notifier = notifier;
         }
 
         private TimeSpan GetHoldDuration()
@@ -80,8 +77,6 @@ namespace schoolAdmission.src.Modules.Holds
 
             _context.Holds.Add(hold);
             await _context.SaveChangesAsync();
-
-            await _notifier.NotifyClassSeatsChangedAsync(classId);
 
             return hold;
         }
@@ -150,9 +145,6 @@ namespace schoolAdmission.src.Modules.Holds
             hold.UpdatedAt = now;
 
             await _context.SaveChangesAsync();
-
-            await _notifier.NotifyClassSeatsChangedAsync(hold.ClassId);
-
             return hold;
         }
 
@@ -164,14 +156,10 @@ namespace schoolAdmission.src.Modules.Holds
                 return false;
             }
 
-            var classId = hold.ClassId;
             hold.Status = HoldStatus.CANCELLED;
             hold.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
-
-            await _notifier.NotifyClassSeatsChangedAsync(classId);
-
             return true;
         }
     }

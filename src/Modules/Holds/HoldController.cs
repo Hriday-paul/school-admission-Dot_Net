@@ -6,7 +6,7 @@ using schoolAdmission.src.utils;
 namespace schoolAdmission.src.Modules.Holds
 {
     [ApiController]
-    [Route("api/holds")]
+    [Route("holds")]
     public class HoldController : ControllerBase
     {
         private readonly IHoldRepository _holdRepository;

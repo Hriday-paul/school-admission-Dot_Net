@@ -1,25 +1,21 @@
 using Microsoft.EntityFrameworkCore;
 using schoolAdmission.src.Infrastructure.Data;
 using schoolAdmission.src.Modules.Holds;
-using schoolAdmission.src.Shared.Services;
 
 namespace schoolAdmission.src.Infrastructure.BackgroundJobs
 {
     public class ExpiredHoldsCleanupWorker : BackgroundService
     {
         private readonly IServiceScopeFactory _scopeFactory;
-        private readonly IClassSeatsNotifier _notifier;
         private readonly ILogger<ExpiredHoldsCleanupWorker> _logger;
         // Interval to check for expired holds (e.g., every 30 seconds)
         private static readonly TimeSpan CheckInterval = TimeSpan.FromSeconds(30);
 
         public ExpiredHoldsCleanupWorker(
             IServiceScopeFactory scopeFactory,
-            IClassSeatsNotifier notifier,
             ILogger<ExpiredHoldsCleanupWorker> logger)
         {
             _scopeFactory = scopeFactory;
-            _notifier = notifier;
             _logger = logger;
         }
 
@@ -74,7 +70,6 @@ namespace schoolAdmission.src.Infrastructure.BackgroundJobs
             if (updatedCount > 0)
             {
                 _logger.LogInformation("Expired {Count} holds at {Timestamp}.", updatedCount, now);
-                await _notifier.NotifyClassSeatsChangedAsync();
             }
         }
     }

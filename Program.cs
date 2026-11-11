@@ -5,7 +5,6 @@ using schoolAdmission.src.Infrastructure.Data;
 using schoolAdmission.src.Infrastructure.Repositories;
 using schoolAdmission.src.Modules.Classes;
 using schoolAdmission.src.Modules.Holds;
-using schoolAdmission.src.Shared.Services;
 using schoolAdmission.src.utils;
 
 // Load .env file if present
@@ -35,6 +34,22 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
     ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
@@ -43,8 +58,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddScoped<IClassRepository, ClassesService>();
 builder.Services.AddScoped<IHoldRepository, HoldsService>();
-builder.Services.AddSingleton<IClassSeatsNotifier, ClassSeatsNotifier>();
-builder.Services.AddSignalR();
 builder.Services.AddHostedService<ExpiredHoldsCleanupWorker>();
 
 builder.Services.AddControllers()
@@ -76,9 +89,11 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseCors();
+app.UseCors("AllowAll");
+
 app.UseHttpsRedirection();
 
 app.MapControllers();
-app.MapHub<ClassHub>("/classes");
 
 app.Run();
